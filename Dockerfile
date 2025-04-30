@@ -5,15 +5,16 @@ ARG SOURCE_COMMIT
 ARG BUSYBOX_VERSION=1.36.1
 ARG SUPERVISOR_VERSION=4.2.5
 ARG GO_VERSION=1.24.1
-
+ARG PLATFORM=arm64
+ARG APT_PLATFORM=386
 RUN apt-get update
 RUN apt-get -y install apt-utils
 RUN apt-get -y install build-essential curl git python3 python3-pip shellcheck
 
 # Install Go 1.24 manually
-RUN curl -L -o /tmp/go${GO_VERSION}.linux-amd64.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
-    && tar -C /usr/local -xzf /tmp/go${GO_VERSION}.linux-amd64.tar.gz \
-    && rm /tmp/go${GO_VERSION}.linux-amd64.tar.gz
+RUN curl -L -o /tmp/go${GO_VERSION}.linux-${PLATFORM}.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${PLATFORM}.tar.gz \
+    && tar -C /usr/local -xzf /tmp/go${GO_VERSION}.linux-${PLATFORM}.tar.gz \
+    && rm /tmp/go${GO_VERSION}.linux-${PLATFORM}.tar.gz
 ENV PATH=$PATH:/usr/local/go/bin
 ENV GOPATH=/go
 ENV PATH=$PATH:$GOPATH/bin
@@ -84,16 +85,16 @@ RUN if [ "${TESTS:-true}" = true ]; then \
     fi
 WORKDIR /
 RUN rm -rf /usr/local/lib/
-RUN tar xzvf /build/supervisor/dist/supervisor-*.linux-x86_64.tar.gz
-RUN tar xzvf /build/env2cfg/dist/env2cfg-*.linux-x86_64.tar.gz
-RUN tar xzvf /build/python-a2s/dist/python-a2s-*.linux-x86_64.tar.gz
+RUN tar xzvf /build/supervisor/dist/supervisor-*.linux-*_64.tar.gz
+RUN tar xzvf /build/env2cfg/dist/env2cfg-*.linux-*_64.tar.gz
+RUN tar xzvf /build/python-a2s/dist/python-a2s-*.linux-*_64.tar.gz
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 RUN mkdir -p /usr/local/etc/supervisor/conf.d/ \
     && chmod 640 /usr/local/etc/supervisord.conf
 RUN echo "${SOURCE_COMMIT:-unknown}" > /usr/local/etc/git-commit.HEAD
 
 
-FROM --platform=linux/386 debian:buster-slim AS i386-libs
+FROM --platform=linux/${APT_PLATFORM} debian:buster-slim AS i386-libs
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
