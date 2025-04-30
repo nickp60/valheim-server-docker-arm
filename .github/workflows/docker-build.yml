@@ -35,7 +35,10 @@ jobs:
           platforms: linux/arm64
           load: false
           push: true
-          build-args: SOURCE_COMMIT=${{ github.sha }} APT_PLATFORM=arm64 PLATFORM=arm64
+          build-args:
+            - SOURCE_COMMIT=${{ github.sha }}
+            - APT_PLATFORM=arm64
+            - PLATFORM=arm64
           tags: valheim-test
           cache-from: type=gha
           cache-to: type=gha,mode=max
